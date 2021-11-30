@@ -20,7 +20,7 @@ class MouthCell extends BodyCell{
     eatNeighbor(n_cell, env) {
         if (n_cell == null)
             return;
-        if (n_cell.state == CellStates.food){
+        if (n_cell.state == CellStates.food && n_cell.owner != this.org){
             env.changeCell(n_cell.col, n_cell.row, CellStates.empty, null);
             this.org.food_collected++;
         }
