@@ -155,14 +155,14 @@ class EnvironmentController extends CanvasController{
         for (var loc of Neighbors.allSelf){
             var c=col + loc[0];
             var r=row + loc[1];
-            var cell = this.env.grid_map.cellAt(c, r);
-            if (cell == null)
+            var cells = this.env.grid_map.cellsAt(c, r);
+            if (cells.size > 0)
                 continue;
-            if (killBlocking && cell.owner != null){
-                cell.owner.die();
-            }
-            else if (cell.owner != null) {
-                continue;
+            if (killBlocking){
+                map.forEach(function(cell, id) {
+                    if (cell.owner != null)
+                        cell.owner.die();
+                });
             }
             this.env.changeCell(c, r, state, null);
         }
@@ -172,9 +172,9 @@ class EnvironmentController extends CanvasController{
         for (var loc of Neighbors.all){
             var c = this.cur_cell.col + loc[0];
             var r = this.cur_cell.row + loc[1];
-            var cell = this.env.grid_map.cellAt(c, r);
-            if (cell != null && cell.owner != null)
-                return cell.owner;
+            var cells = this.env.grid_map.cellsAt(c, r);
+            if (cell.size > 0)
+                return cells.values()[0].owner;
         }
         return null;
     }
@@ -183,9 +183,12 @@ class EnvironmentController extends CanvasController{
         for (var loc of Neighbors.allSelf){
             var c = this.cur_cell.col + loc[0];
             var r = this.cur_cell.row + loc[1];
-            var cell = this.env.grid_map.cellAt(c, r);
-            if (cell != null && cell.owner != null)
-                cell.owner.die();
+            var cells = this.env.grid_map.cellsAt(c, r);
+            if (cells.size > 0) {
+                cells.forEach(function(cell, id) {
+                    cell.owner.die();
+                });
+            }
         }
     }
 

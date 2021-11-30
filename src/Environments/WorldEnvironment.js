@@ -97,14 +97,14 @@ class WorldEnvironment extends Environment{
 
     changeCell(c, r, state, owner) {
         super.changeCell(c, r, state, owner);
-        this.renderer.addToRender(this.grid_map.cellAt(c, r));
+        this.renderer.addToRender(this.grid_map.cellsAt(c, r));
         if(state == CellStates.wall)
-            this.walls.push(this.grid_map.cellAt(c, r));
+            this.walls.push(this.grid_map.cellsAt(c, r));
     }
 
     clearWalls() {
         for(var wall of this.walls){
-            if (this.grid_map.cellAt(wall.col, wall.row).state == CellStates.wall)
+            if (this.grid_map.cellsAt(wall.col, wall.row).state == CellStates.wall)
                 this.changeCell(wall.col, wall.row, CellStates.empty, null);
         }
     }
@@ -123,7 +123,7 @@ class WorldEnvironment extends Environment{
                 var c=Math.floor(Math.random() * this.grid_map.cols);
                 var r=Math.floor(Math.random() * this.grid_map.rows);
 
-                if (this.grid_map.cellAt(c, r).state == CellStates.empty){
+                if (this.grid_map.cellsAt(c, r).size == 0){
                     this.changeCell(c, r, CellStates.food, null);
                 }
             }
@@ -132,7 +132,7 @@ class WorldEnvironment extends Environment{
 
     reset() {
         this.organisms = [];
-        this.grid_map.fillGrid(CellStates.empty);
+        this.grid_map.clear();
         this.renderer.renderFullGrid(this.grid_map.grid);
         this.total_mutability = 0;
         this.total_ticks = 0;

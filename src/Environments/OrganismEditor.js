@@ -66,7 +66,7 @@ class OrganismEditor extends Environment{
     }
 
     setOrganismToCopyOf(orig_org) {
-        this.grid_map.fillGrid(CellStates.empty);
+        this.grid_map.clear();
         var center = this.grid_map.getCenter();
         this.organism = new Organism(center[0], center[1], this, orig_org);
         this.organism.updateGrid();
@@ -80,7 +80,7 @@ class OrganismEditor extends Environment{
     }
 
     clear() {
-        this.grid_map.fillGrid(CellStates.empty);
+        this.grid_map.clear();
         var center = this.grid_map.getCenter();
         this.organism = new Organism(center[0], center[1], this, null);
         this.organism.anatomy.addDefaultCell(CellStates.mouth, 0, 0);

@@ -1,5 +1,6 @@
 const Cell = require('../Organism/Cell/GridCell');
 const CellStates = require('../Organism/Cell/CellStates');
+const HashMap = require('hashmap');
 
 class GridMap {
     constructor(cols, rows, cell_size) {
@@ -14,22 +15,21 @@ class GridMap {
         for(var c=0; c<cols; c++) {
             var row = [];
             for(var r=0; r<rows; r++) {
-                var cell = new Cell(CellStates.empty, c, r, c*cell_size, r*cell_size);
-                row.push(cell);
-            }            
+                row.push(new Hashmap());
+            }      
             this.grid.push(row);
         }
     }
 
-    fillGrid(state) {
+    clear() {
         for (var col of this.grid) {
-            for (var cell of col) {
-                cell.setType(state);
-                cell.owner = null;
-                cell.cell_owner = null;
+            for (var map of col) {
+                map.clear();
             }
         }
     }
+
+    
 
     cellAt(col, row) {
         if (!this.isValidLoc(col, row)) {

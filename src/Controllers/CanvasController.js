@@ -1,4 +1,4 @@
-
+const HashMap = require('hashmap');
 
 class CanvasController{
     constructor(env, canvas) {
@@ -10,7 +10,7 @@ class CanvasController{
         this.mouse_r;
         this.left_click = false;
         this.right_click = false;
-        this.cur_cell = null;
+        this.cur_cells = new HashMap();
         this.cur_org = null;
         this.highlight_org = true;
         this.defineEvents();
@@ -58,7 +58,7 @@ class CanvasController{
     }
 
     updateMouseLocation(offsetX, offsetY) {
-        var prev_cell = this.cur_cell;
+        var prev_cells = this.cur_cells;
         var prev_org = this.cur_org;
 
         this.mouse_x = offsetX;
@@ -66,16 +66,18 @@ class CanvasController{
         var colRow = this.env.grid_map.xyToColRow(this.mouse_x, this.mouse_y);
         this.mouse_c = colRow[0];
         this.mouse_r = colRow[1];
-        this.cur_cell = this.env.grid_map.cellAt(this.mouse_c, this.mouse_r);
-        this.cur_org = this.cur_cell.owner;
+        this.cur_cells = this.env.grid_map.cellsAt(this.mouse_c, this.mouse_r);
+        if (this.cur_cells.size > 0) {
+            this.cur_org = this.cur_cells.values()[0].owner;
+        }
 
-        if (this.cur_org != prev_org || this.cur_cell != prev_cell) {
+        if (this.cur_org != prev_org || this.cur_cells != prev_cells) {
             this.env.renderer.clearAllHighlights(true);
             if (this.cur_org != null && this.highlight_org) {
                 this.env.renderer.highlightOrganism(this.cur_org);
             }
-            else if (this.cur_cell != null) {
-                this.env.renderer.highlightCell(this.cur_cell, true);
+            else if (this.cur_cells.size > 0) {
+                this.env.renderer.highlightCell(this.cur_cells.values()[0], true);
             }
         }
     }

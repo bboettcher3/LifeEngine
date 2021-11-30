@@ -14,7 +14,7 @@ class Organism {
         this.lifetime = 0;
         this.food_collected = 0;
         this.living = true;
-        this.anatomy = new Anatomy(this)
+        this.anatomy = new Anatomy(this);
         this.direction = Directions.down; // direction of movement
         this.rotation = Directions.up; // direction of rotation
         this.can_rotate = Hyperparams.moversCanRotate;
@@ -215,7 +215,7 @@ class Organism {
                 r1 = temp;
             }
             for (var i=r1; i!=r2; i++) {
-                var cell = this.env.grid_map.cellAt(c1, i)
+                var cells = this.env.grid_map.cellsAt(c1, i)
                 if (!this.isPassableCell(cell, parent)){
                     return false;
                 }
@@ -230,7 +230,7 @@ class Organism {
             }
             for (var i=c1; i!=c2; i++) {
                 var cell = this.env.grid_map.cellAt(i, r1);
-                if (!this.isPassableCell(cell, parent)){
+                if (!this.isPassableLoc(cell, parent)){
                     return false;
                 }
             }
@@ -238,8 +238,8 @@ class Organism {
         }
     }
 
-    isPassableCell(cell, parent){
-        return cell != null && (cell.state == CellStates.empty || cell.owner == this || cell.owner == parent || cell.state == CellStates.food);
+    isPassableLoc(loc, parent){
+        return loc != null && (loc.size <= 5 /* TODO: dont hardcode this (max cells per loc) */.state == CellStates.empty || cell.owner == this || cell.owner == parent || cell.state == CellStates.food);
     }
 
     isClear(col, row, rotation=this.rotation, ignore_armor=false) {
