@@ -292,25 +292,11 @@ class Organism {
                 return this.living
         }
         
-        if (this.anatomy.is_mover) {
-            this.move_count++;
-            var changed_dir = false;
-            if (this.ignore_brain_for == 0){
-                changed_dir = this.brain.decide();
-            }  
-            else{
-                this.ignore_brain_for --;
-            }
-            var moved = this.attemptMove();
-            if ((this.move_count > this.move_range && !changed_dir) || !moved){
-                var rotated = this.attemptRotate();
-                if (!rotated) {
-                    this.changeDirection(Directions.getRandomDirection());
-                    if (changed_dir)
-                        this.ignore_brain_for = this.move_range + 1;
-                }
-            }
-        }
+        /* TODO: move if movement or rotation neurons driven */
+        /*var changed_dir = false;
+        var moved = this.attemptMove();
+        var rotated = this.attemptRotate();
+        this.changeDirection(Directions.getRandomDirection()); */
 
         return this.living;
     }
