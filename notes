@@ -1,0 +1,70 @@
+evolution experiments:
+
+- organisms move "into" each other and can pass through each other. collisions happen when cells are shared by multiple organisms.
+	- grid structure: (n rows) x  (m columns) x (1 hashmap of cells)
+	- hashmap needed for organisms to move them when they move (access with organism ID)
+- food
+	- functions to keep organism alive, each food type contributes a certain amount to daily food requirement
+	- adding food producer type cells on organisms(type must match for eater and producer)
+	- cant eat own produced food
+	- food storing cells (also below)
+- organism cell types
+	- wall breaking, wall creation
+	- cell moving (moves non-organism cells in direction cell is moving) (maybe food hoarding?)
+	- food storing
+	- reproduction (reproduces if touched with other reproduction cell at custom birth rate)
+		- spacing needed for reproduction as another experiment
+	- non functional (for body shape experiments)
+		- only can add cells to empty sides of these
+	- add movement pattern neural nets from other video you saw
+	- use mover cells as possible pivot points
+	- multiple eyes
+	- armor only lasting x collisions before disappearing (with recharge)
+	- cell types that block organisms from moving through them
+- eyes dont see if blocked by own organism
+- eyes take more damage (maybe leading to eye armoring)
+- eye input to the neural net for movement
+- look into evolvable mutation rate (already in dev)
+- position of cells relative to center cell as input to neural net (positioning body relative to other cells)
+- generation (or time units) skipping input
+- separation with walls every so often to separate populations programatically
+- speed as neural net param (but increases food need or decreases damage needed or something)
+
+- movement todo
+	- create random "genome" strings for starting organisms
+	- neural net
+		- sensory input neurons (0.0-1.0)
+		- action output neurons (output = probability of firing)
+		- internal neurons
+	- connection weights range -4.0 to 4.0
+	- neuron computes tanh(sum of connections*weights)
+	- remove internal neurons when no connection to action outputs (useless connections)
+
+- todo food functions
+	- cant eat own produced food
+	- move to energy model
+		- energy count in organism anatomy
+		- can only move if has mover and energy is above 0
+		- cells have unique energy used per tick (more complex cells = more usage)
+			- indirectly leads to size bad
+		- 
+
+- todo collisions
+	- get rid of "empty cell" concept
+	- implement hashmaps per grid cell
+	- find out whats up with "cell size"
+	- add organism ID for hashmap key?
+
+dev notes:
+- WorldEnvironment
+	- starts simulation by creating first organism
+	- removes dead organisms
+	- handles food spawning
+	- ticks clock
+- EnvironmentController
+	- handles mouse actions on environment
+- GridMap
+	- data structure for cells
+- Organism
+	- Cell
+		- CellState is cell types
