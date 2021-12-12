@@ -9,6 +9,7 @@ const NeuronType = {
 class Gene {
     constructor(){
         /* All members are stored 16 bit integers */
+        /* Random values to start */
         this.sourceType = getRandomInt(1);
         this.sourceNum = getRandomInt(0x7FFF) % HyperParams.numNeurons;
         this.sinkType = getRandomInt(1);

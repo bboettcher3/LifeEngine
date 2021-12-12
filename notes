@@ -39,6 +39,10 @@ evolution experiments:
 	- connection weights range -4.0 to 4.0
 	- neuron computes tanh(sum of connections*weights)
 	- remove internal neurons when no connection to action outputs (useless connections)
+	- 12/11/21
+		- neural net creation complete yay
+		- now need to use signals to determine actions firing
+		- also need to do evolution stuff
 
 - todo food functions
 	- cant eat own produced food
