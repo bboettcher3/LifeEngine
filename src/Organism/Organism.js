@@ -4,6 +4,7 @@ const Hyperparams = require("../Hyperparameters");
 const Directions = require("./Directions");
 const Anatomy = require("./Anatomy");
 const Brain = require("./Perception/Brain");
+const Sensors = require("./Perception/Sensors");
 const FossilRecord = require("../Stats/FossilRecord");
 
 class Organism {
@@ -289,16 +290,131 @@ class Organism {
         for (var cell of this.anatomy.cells) {
             cell.performFunction();
             if (!this.living)
-                return this.living
+                return this.living;
         }
         
-        /* TODO: move if movement or rotation neurons driven */
+        /* TODO: move if movement neurons driven */
+        // Update sensory neurons to drive outputs
+        let sensoryData = getSensoryData();
+        let actionLevels = this.brain.update(sensoryData);
+        executeActions(actionLevels);
+
         /*var changed_dir = false;
         var moved = this.attemptMove();
         var rotated = this.attemptRotate();
         this.changeDirection(Directions.getRandomDirection()); */
 
         return this.living;
+    }
+
+    // Returns an array of scaled sensory values between 0.0 and 1.0 (in order from Sensors.all)
+    getSensoryData() {
+        var sensorValues = new Array(Sensors.numSensors).fill(0.0);
+        var sensorTypes = Sensors.all;
+        for (let i = 0; i < Sensors.numSensors; ++i) {
+            switch (sensorTypes[i]) {
+                case Sensors.locX:
+                    sensorValues[i] = this.r / this.env.grid_map.rows;
+                    break;
+                case Sensors.locY:
+                    sensorValues[i] = this.c / this.env.grid_map.cols;
+                    break;
+            }
+        }
+        return sensorValues;
+    }
+
+    executeActions(actionLevels) {
+        // ------------- Movement action neurons ---------------
+        // There are multiple action neurons for movement. Each type of movement neuron
+        // urges the individual to move in some specific direction. We sum up all the
+        // X and Y components of all the movement urges, then pass the X and Y sums through
+        // a transfer function (tanh()) to get a range -1.0..1.0. The absolute values of the
+        // X and Y values are passed through prob2bool() to convert to -1, 0, or 1, then
+        // multiplied by the component's signum. This results in the x and y components of
+        // a normalized movement offset. I.e., the probability of movement in either
+        // dimension is the absolute value of tanh of the action level X,Y components and
+        // the direction is the sign of the X, Y components. For example, for a particular
+        // action neuron:
+        //     X, Y == -5.9, +0.3 as raw action levels received here
+        //     X, Y == -0.999, +0.29 after passing raw values through tanh()
+        //     Xprob, Yprob == 99.9%, 29% probability of X and Y becoming 1 (or -1)
+        //     X, Y == -1, 0 after applying the sign and probability
+        //     The agent will then be moved West (an offset of -1, 0) if it's a legal move.
+
+        let level = 0.0;
+        Coord offset;
+        Coord lastMoveOffset = indiv.lastMoveDir.asNormalizedCoord();
+
+    // moveX,moveY will be the accumulators that will hold the sum of all the
+    // urges to move along each axis. (+- floating values of arbitrary range)
+    float moveX = isEnabled(Action::MOVE_X) ? actionLevels[Action::MOVE_X] : 0.0;
+    float moveY = isEnabled(Action::MOVE_Y) ? actionLevels[Action::MOVE_Y] : 0.0;
+
+    if (isEnabled(Action::MOVE_EAST)) moveX += actionLevels[Action::MOVE_EAST];
+    if (isEnabled(Action::MOVE_WEST)) moveX -= actionLevels[Action::MOVE_WEST];
+    if (isEnabled(Action::MOVE_NORTH)) moveY += actionLevels[Action::MOVE_NORTH];
+    if (isEnabled(Action::MOVE_SOUTH)) moveY -= actionLevels[Action::MOVE_SOUTH];
+
+    if (isEnabled(Action::MOVE_FORWARD)) {
+        level = actionLevels[Action::MOVE_FORWARD];
+        moveX += lastMoveOffset.x * level;
+        moveY += lastMoveOffset.y * level;
+    }
+    if (isEnabled(Action::MOVE_REVERSE)) {
+        level = actionLevels[Action::MOVE_REVERSE];
+        moveX -= lastMoveOffset.x * level;
+        moveY -= lastMoveOffset.y * level;
+    }
+    if (isEnabled(Action::MOVE_LEFT)) {
+        level = actionLevels[Action::MOVE_LEFT];
+        offset = indiv.lastMoveDir.rotate90DegCCW().asNormalizedCoord();
+        moveX += offset.x * level;
+        moveY += offset.y * level;
+    }
+    if (isEnabled(Action::MOVE_RIGHT)) {
+        level = actionLevels[Action::MOVE_RIGHT];
+        offset = indiv.lastMoveDir.rotate90DegCW().asNormalizedCoord();
+        moveX += offset.x * level;
+        moveY += offset.y * level;
+    }
+    if (isEnabled(Action::MOVE_RL)) {
+        level = actionLevels[Action::MOVE_RL];
+        offset = indiv.lastMoveDir.rotate90DegCW().asNormalizedCoord();
+        moveX += offset.x * level;
+        moveY += offset.y * level;
+    }
+
+    if (isEnabled(Action::MOVE_RANDOM)) {
+        level = actionLevels[Action::MOVE_RANDOM];
+        offset = Dir::random8().asNormalizedCoord();
+        moveX += offset.x * level;
+        moveY += offset.y * level;
+    }
+
+    // Convert the accumulated X, Y sums to the range -1.0..1.0 and scale by the
+    // individual's responsiveness (0.0..1.0) (adjusted by a curve)
+    moveX = std::tanh(moveX);
+    moveY = std::tanh(moveY);
+    moveX *= responsivenessAdjusted;
+    moveY *= responsivenessAdjusted;
+
+    // The probability of movement along each axis is the absolute value
+    int16_t probX = (int16_t)prob2bool(std::abs(moveX)); // convert abs(level) to 0 or 1
+    int16_t probY = (int16_t)prob2bool(std::abs(moveY)); // convert abs(level) to 0 or 1
+
+    // The direction of movement (if any) along each axis is the sign
+    int16_t signumX = moveX < 0.0 ? -1 : 1;
+    int16_t signumY = moveY < 0.0 ? -1 : 1;
+
+    // Generate a normalized movement offset, where each component is -1, 0, or 1
+    Coord movementOffset = { (int16_t)(probX * signumX), (int16_t)(probY * signumY) };
+
+    // Move there if it's a valid location
+    Coord newLoc = indiv.loc + movementOffset;
+    if (grid.isInBounds(newLoc) && grid.isEmptyAt(newLoc)) {
+        peeps.queueForMove(indiv, newLoc);
+    }
     }
 
     getRealCell(local_cell, c=this.c, r=this.r, rotation=this.rotation){

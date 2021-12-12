@@ -1,7 +1,6 @@
 // A cell state is used to differentiate type and render the cell
 class Sensor {
-    constructor(name) {
-        this.name = name;
+    constructor() {
     }
 
 //    render(ctx, cell, size) {

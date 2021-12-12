@@ -40,8 +40,8 @@ evolution experiments:
 	- neuron computes tanh(sum of connections*weights)
 	- remove internal neurons when no connection to action outputs (useless connections)
 	- 12/11/21
-		- neural net creation complete yay
-		- now need to use signals to determine actions firing
+		x- neural net creation complete yay
+		x- now need to use signals to determine actions firing
 		- also need to do evolution stuff
 
 - todo food functions

@@ -1,6 +1,4 @@
 const Hyperparams = require("../../Hyperparameters");
-const Directions = require("../Directions");
-const CellStates = require("../Cell/CellStates");
 const Genome = require("./Genome");
 const NeuralNet = require("./NeuralNet");
 
@@ -12,18 +10,10 @@ class Brain {
         this.observation = null;
     }
 
-    observe(observation) {
-        this.observation = observation;
-    }
-
     /* Updates neural net outputs to reflect current actions based on senses */
-    update() {
-        if (this.observation == null) return;
-        if (this.observation.cell == null || this.observation.cell.owner == this.owner) {
-            return;
-        }
-        /* TODO: run neural net based on current sense inputs */
-        this.observation = null;
+    /* Returns an array of the action level for each output neuron */
+    update(sensoryData) {
+        return this.neuralNet.feedForward(sensoryData);
     }
 
     mutate() {

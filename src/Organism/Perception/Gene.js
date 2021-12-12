@@ -17,7 +17,7 @@ class Gene {
         this.weight = Math.Round(Math.random() * 0xEFFF) - 0x8000;
     }
 
-    weightAsFloat(){ return weight / 8192.0; }
+    weightAsFloat(){ return this.weight / 8192.0; }
     /* Random int from 0 to max (inclusive) */
     getRandomInt(max){ return Math.floor(Math.random() * (max + 1)); }
 }
