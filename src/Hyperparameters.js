@@ -12,6 +12,7 @@ const Hyperparams = {
 
         this.numGenes = 4;
         this.numNeurons = 1;
+        this.genomeMutationProb = 0.05;
 
         this.useGlobalMutability = false;
         this.globalMutability = 5;

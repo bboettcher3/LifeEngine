@@ -35,7 +35,7 @@ class EyeCell extends BodyCell{
 
     performFunction() {
         var obs = this.look();
-        this.org.brain.observe(obs);
+        // TODO: use for sensors    
     }
 
     look() {

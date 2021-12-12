@@ -17,7 +17,7 @@ class Organism {
         this.food_collected = 0;
         this.living = true;
         this.anatomy = new Anatomy(this);
-        this.brain = new Brain(this);
+        this.brain = new Brain(this, parent);
         this.direction = Directions.down; // direction of movement
         this.rotation = Directions.up; // direction of rotation
         this.can_rotate = Hyperparams.moversCanRotate;
@@ -66,6 +66,10 @@ class Organism {
         //produce mutated child
         //check nearby locations (is there room and a direct path)
         var org = new Organism(0, 0, this.env, this);
+
+        // Mutate genome conditionally
+        org.brain.mutate();
+
         if(Hyperparams.offspringRotate){
             org.rotation = Directions.getRandomDirection();
         }
@@ -85,10 +89,7 @@ class Organism {
         } 
         var mutated = false;
         if (Math.random() * 100 <= prob) {
-            if (org.anatomy.is_mover && Math.random() * 100 <= 10) { 
-                if (org.anatomy.has_eyes) {
-                    org.brain.mutate();
-                }
+            if (org.anatomy.is_mover && Math.random() * 100 <= 10) {         
                 org.move_range += Math.floor(Math.random() * 4) - 2;
                 if (org.move_range <= 0){
                     org.move_range = 1;
@@ -126,6 +127,7 @@ class Organism {
     }
 
     mutate() {
+
         let mutated = false;
         if (this.calcRandomChance(Hyperparams.addProb)) {
             let branch = this.anatomy.getRandomCell();
