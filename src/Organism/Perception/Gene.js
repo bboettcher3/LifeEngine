@@ -1,4 +1,4 @@
-const Hyperparams = require("../Hyperparameters");
+const Hyperparams = require("../../Hyperparameters");
 
 const NeuronType = {
     internal: 0,
@@ -14,7 +14,7 @@ class Gene {
         this.sourceNum = getRandomInt(0x7FFF) % HyperParams.numNeurons;
         this.sinkType = getRandomInt(1);
         this.sinkNum = getRandomInt(0x7FFF) % HyperParams.numNeurons;
-        this.weight = Math.Round(Math.random() * 0xEFFF) - 0x8000;
+        this.weight = Math.Round(Math.random() * 0xFFFF) - 0x8000;
     }
 
     weightAsFloat(){ return this.weight / 8192.0; }

@@ -14,7 +14,7 @@ const Actions = {
     moveX: 0, // +- x component of movement ()
     moveY: 1, // +- y component of movement
     moveRandom: 2, // Move in a random direction (moveX and moveY have priority when firing at the same time though)
-    killNeighbors: 3 // Probability of killing all organisms touching its killer cells
+    killNeighbors: 3, // Probability of killing all organisms touching its killer cells
     defineLists() {
         this.all = [this.moveX, this.moveY, this.moveRandom, this.killNeighbors];
         this.numActions = all.length;

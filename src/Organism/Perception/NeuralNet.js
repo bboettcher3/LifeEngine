@@ -1,7 +1,7 @@
 const Neuron = require("./Neuron");
 const Sensors = require("./Sensors");
 const Actions = require("./Actions");
-const Hyperparams = require("../Hyperparameters");
+const Hyperparams = require("../../Hyperparameters");
 
 // Each gene specifies one synaptic connection in a neural net. Each
 // connection has an input (source) which is either a sensor or another neuron.
@@ -249,7 +249,7 @@ We have three types of neurons:
         while (!allDone) {
             allDone = true;
             let mapIter = nodeMap.entries();
-            for (let mapItem = mapIter.next(); !mapItem.done) {
+            for (let mapItem = mapIter.next(); !mapItem.done;) {
                 let neuron = mapItem.value[1];
                 // We're looking for neurons with zero outputs, or neurons that feed itself
                 // and nobody else:
