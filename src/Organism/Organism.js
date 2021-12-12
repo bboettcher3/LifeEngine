@@ -5,6 +5,7 @@ const Directions = require("./Directions");
 const Anatomy = require("./Anatomy");
 const Brain = require("./Perception/Brain");
 const Sensors = require("./Perception/Sensors");
+const Actions = require("./Perception/Actions");
 const FossilRecord = require("../Stats/FossilRecord");
 
 class Organism {
@@ -292,11 +293,11 @@ class Organism {
         }
         
         // Retrieve sensory data from surroundings
-        let sensoryData = getSensoryData();
+        let sensoryData = this.getSensoryData();
         // Get action output levels from brain
         let actionLevels = this.brain.update(sensoryData);
         // Execute actions over their respective threshold
-        executeActions(actionLevels);
+        this.executeActions(actionLevels);
 
         return this.living;
     }
@@ -345,15 +346,13 @@ class Organism {
         //     X, Y == -1, 0 after applying the sign and probability
         //     The agent will then be moved West (an offset of -1, 0) if it's a legal move.
 
-        let level = 0.0;
-
         // moveX,moveY will be the accumulators that will hold the sum of all the
         // urges to move along each axis. (+- floating values of arbitrary range)
         let moveX = actionLevels[Actions.moveX];
         let moveY = actionLevels[Actions.moveY];
 
-        level = actionLevels[Actions.moveRandom];
-        offset = Directions.getRandomScalar();
+        let level = actionLevels[Actions.moveRandom];
+        let offset = Directions.getRandomScalar();
         moveX += offset[0] * level;
         moveY += offset[1] * level;
 

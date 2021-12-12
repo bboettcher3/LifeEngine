@@ -17,7 +17,7 @@ const Actions = {
     killNeighbors: 3, // Probability of killing all organisms touching its killer cells
     defineLists() {
         this.all = [this.moveX, this.moveY, this.moveRandom, this.killNeighbors];
-        this.numActions = all.length;
+        this.numActions = this.all.length;
     },
     // TODO: remove after makign functions
     //getSomething: function() {

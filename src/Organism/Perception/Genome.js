@@ -1,5 +1,5 @@
 const Gene = require("./Gene");
-const Hyperparams = require("../../Hyperparameters");
+const HyperParams = require("../../Hyperparameters");
 
 class Genome {
     constructor(){

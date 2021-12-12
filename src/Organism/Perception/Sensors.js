@@ -20,7 +20,7 @@ const Sensors = {
     locY: 1, // ^
     defineLists() {
         this.all = [this.locX, this.locY, this.boundaryDistX, this.boundaryDistY];
-        this.numSensors = all.length;
+        this.numSensors = this.all.length;
     },
     // TODO: remove after makign functions
     //getSomething: function() {
