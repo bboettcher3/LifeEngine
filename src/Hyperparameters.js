@@ -10,8 +10,8 @@ const Hyperparams = {
         this.edibleNeighbors = Neighbors.adjacent;
         this.growableNeighbors = Neighbors.adjacent;
 
-        this.numGenes = 4;
-        this.numNeurons = 1;
+        this.numGenes = 10;
+        this.numNeurons = 10;
         this.genomeMutationProb = 0.05;
 
         this.useGlobalMutability = false;

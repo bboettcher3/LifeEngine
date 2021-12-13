@@ -8,6 +8,7 @@ class EyeCell extends BodyCell{
     constructor(org, loc_col, loc_row){
         super(CellStates.eye, org, loc_col, loc_row);
         this.org.anatomy.has_eyes = true;
+        this.observation = null; // cell most recently seen
     }
 
     initInherit(parent) {
@@ -34,8 +35,27 @@ class EyeCell extends BodyCell{
     }
 
     performFunction() {
-        var obs = this.look();
-        // TODO: use for sensors    
+        this.observation = this.look();
+    }
+
+    getNumSensorNeurons() {
+        return 3; // [observed cell type, observed cell distance, observed cell direction]
+    }
+
+    // Properties from observed cell
+    // [type, distance, direction]
+    getSensorValues() {
+        if (this.observation == null) return [0.0, 0.0, 0.0]; // TODO: maybe create unique values for no cell found
+        let stateIdx = 0;
+        // TODO: clean this shit up it messy af
+        for (var i = 0; i < CellStates.all.length; ++i) {
+            if (this.observation.cell.state == CellStates.all[i]) {
+                stateIdx = i;
+                break;
+            }
+        }
+        let typeScaled = stateIdx / CellStates.all.length;
+        return [typeScaled, this.observation.distance / Hyperparams.lookRange, this.observation.direction / 3.0]
     }
 
     look() {
@@ -74,7 +94,7 @@ class EyeCell extends BodyCell{
                 return new Observation(cell, distance, direction);
             }
         }
-        return new Observation(cell, Hyperparams.lookRange, direction);
+        return null;
     }
 }
 

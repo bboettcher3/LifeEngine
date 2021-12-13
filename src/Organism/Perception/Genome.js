@@ -15,11 +15,11 @@ class Genome {
 
     // Create hex string from genome
     print() {
-        Console.log("genome start --");
+        console.log("genome start --");
         for (var gene of this.genes) {
             gene.print();
         }
-        Console.log("genome end   --");
+        console.log("genome end   --");
     }
 }
 

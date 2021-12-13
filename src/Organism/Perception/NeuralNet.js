@@ -1,7 +1,7 @@
 const Neuron = require("./Neuron");
-const Sensors = require("./Sensors");
 const Actions = require("./Actions");
 const HyperParams = require("../../Hyperparameters");
+const _ = require("lodash");
 
 // Each gene specifies one synaptic connection in a neural net. Each
 // connection has an input (source) which is either a sensor or another neuron.
@@ -14,9 +14,70 @@ const ACTION = 1; // always a sink
 const NEURON = 0; // can be either a source or sink
 
 class NeuralNet {
-    constructor(genome) {
-        this.genome = JSON.parse(JSON.stringify(genome)); // deep copy of genome
+    constructor(genome, numSensorNeurons) {
+        this.genome = _.cloneDeep(genome); // deep copy of genome
+        this.neurons = [];
+        this.connections = [];
+        this.numSensorNeurons = numSensorNeurons;
         this.createWiringFromGenome();
+    }
+
+    createWiringFromGenome() {
+        this.connections = []; // Array of genes
+        this.neurons = [];
+
+        // Convert the indiv's genome to a renumbered connection list
+        let connectionList = this.makeRenumberedConnectionList();
+
+        // Make a node (neuron) list from the renumbered connection list
+        let nodeMap = this.makeNodeList(connectionList);
+        
+        // Find and remove neurons that don't feed anything or only feed themself.
+        // This reiteratively removes all connections to the useless neurons.
+        this.cullUselessNeurons(connectionList, nodeMap);
+
+        // The neurons map now has all the referenced neurons, their neuron numbers, and
+        // the number of outputs for each neuron. Now we'll renumber the neurons
+        // starting at zero.
+        let newNumber = 0;
+        for (var [number, neuron] of nodeMap) {
+            neuron.remappedNumber = newNumber++;
+        }
+
+        // Create the org's true connection list in two passes:
+        // First the connections to neurons, then the connections to actions.
+        // This ordering optimizes the feed-forward function
+        // First, the connections from sensor or neuron to a neuron
+        for (var conn of connectionList) {
+            if (conn.sinkType == NEURON) {
+                let newConn = _.cloneDeep(conn);
+                // fix the destination neuron number
+                newConn.sinkNum = nodeMap.get(newConn.sinkNum).remappedNumber;
+                // if the source is a neuron, fix its number too
+                if (newConn.sourceType == NEURON) {
+                    newConn.sourceNum = nodeMap.get(newConn.sourceNum).remappedNumber;
+                }
+                this.connections.push(newConn);
+            }
+        }
+
+        // Last, the connections from sensor or neuron to an action
+        for (var conn of connectionList) {
+            if (conn.sinkType == ACTION) {
+                let newConn = _.cloneDeep(conn);
+                // if the source is a neuron, fix its number
+                if (newConn.sourceType == NEURON) {
+                    newConn.sourceNum = nodeMap.get(newConn.sourceNum).remappedNumber;
+                }
+                this.connections.push(newConn);
+            }
+        }
+
+        // Create the org's neural node list
+        for (var [number, neuron] of nodeMap) {
+            let isDriven = neuron.numInputsFromSensorsOrOtherNeurons != 0;
+            this.neurons.push( { output: 0.5, driven: isDriven } );
+        }
     }
 
 /********************************************************************************
@@ -101,66 +162,9 @@ We have three types of neurons:
                 neuronAccumulators[conn.sinkNum] += inputVal * conn.weightAsFloat();
             }
         }
+        console.log(neuronAccumulators.toString());
 
         return actionLevels;
-    }
-
-    createWiringFromGenome() {
-        this.connections = []; // Array of genes
-        this.neurons = [];
-
-        let connectionList = [];
-        let nodeMap = new Map(); // Intermediate map used when converting genes into the neural net
-        // Convert the indiv's genome to a renumbered connection list
-        this.makeRenumberedConnectionList(connectionList);
-        // Make a node (neuron) list from the renumbered connection list
-        this.makeNodeList(connectionList, nodeMap);
-        // Find and remove neurons that don't feed anything or only feed themself.
-        // This reiteratively removes all connections to the useless neurons.
-        this.cullUselessNeurons(connectionList, nodeMap);
-
-        // The neurons map now has all the referenced neurons, their neuron numbers, and
-        // the number of outputs for each neuron. Now we'll renumber the neurons
-        // starting at zero.
-        let newNumber = 0;
-        for (var [number, neuron] of nodeMap) {
-            neuron.remappedNumber = newNumber++;
-        }
-
-        // Create the indiv's connection list in two passes:
-        // First the connections to neurons, then the connections to actions.
-        // This ordering optimizes the feed-forward function
-        // First, the connections from sensor or neuron to a neuron
-        for (var conn of connectionList) {
-            if (conn.sinkType == NEURON) {
-                this.connections.push(conn);
-                let newConn = this.connections[-1];
-                // fix the destination neuron number
-                newConn.sinkNum = nodeMap.get(newConn.sinkNum).remappedNumber;
-                // if the source is a neuron, fix its number too
-                if (newConn.sourceType == NEURON) {
-                    newConn.sourceNum = nodeMap.get(newConn.sourceNum).remappedNumber;
-                }
-            }
-        }
-
-        // Last, the connections from sensor or neuron to an action
-        for (var conn of connectionList) {
-            if (conn.sinkType == ACTION) {
-                this.connections.push(conn);
-                let newConn = this.connections[-1];
-                // if the source is a neuron, fix its number
-                if (newConn.sourceType == NEURON) {
-                    newConn.sourceNum = nodeMap.at(newConn.sourceNum).remappedNumber;
-                }
-            }
-        }
-
-        // Create the indiv's neural node list
-        for (var neuronNum = 0; neuronNum < nodeMap.size; ++neuronNum) {
-            let isDriven = nodeMap.at(neuronNum).numInputsFromSensorsOrOtherNeurons != 0;
-            this.neurons.push( { output: 0.5, driven: isDriven } );
-        }
     }
 
     // Convert the indiv's genome to a renumbered connection list
@@ -168,14 +172,15 @@ We have three types of neurons:
     // to the range 0..p.maxNumberNeurons - 1 by using a modulo operator.
     // Sensors are renumbered 0..Sensor::NUM_SENSES - 1
     // Actions are renumbered 0..Action::NUM_ACTIONS - 1
-    makeRenumberedConnectionList(connectionList) {
-        connectionList = [];
+    makeRenumberedConnectionList() {
+        let connectionList = [];
+        if (this.numSensorNeurons == 0) return connectionList;
         for (var gene of this.genome.genes) {
             let conn = gene;
             if (conn.sourceType == NEURON) {
                 conn.sourceNum %= HyperParams.numNeurons;
             } else {
-                conn.sourceNum %= Sensors.numSensors;
+                conn.sourceNum %= this.numSensorNeurons;
             }
 
             if (conn.sinkType == NEURON) {
@@ -185,14 +190,15 @@ We have three types of neurons:
             }
             connectionList.push(conn);
         }
+        return connectionList;
     }
 
     // Scan the connections and make a list of all the neuron numbers
     // mentioned in the connections. Also keep track of how many inputs and
     // outputs each neuron has.
     // Node object: {remappedNumber, numOutputs, numSelfInputs, numInputsFromSensorsOrOtherNeurons}
-    makeNodeList(connectionList, nodeMap) {
-        nodeMap.clear();
+    makeNodeList(connectionList) {
+        let nodeMap = new Map();
         for (var conn of connectionList) {
             if (conn.sinkType == NEURON) {
                 let selfInput = conn.sourceType == NEURON && (conn.sourceNum == conn.sinkNum);
@@ -216,7 +222,7 @@ We have three types of neurons:
                 } else {
                     nodeMap.set(conn.sourceNum, 
                         {   
-                            numOutputs: 0, 
+                            numOutputs: 1, 
                             numSelfInputs: 0, 
                             numInputsFromSensorsOrOtherNeurons: 0
                         });
@@ -224,6 +230,7 @@ We have three types of neurons:
                 
             }
         }
+        return nodeMap;
     }
 
     removeConnectionsToNeuron(connectionList, nodeMap, neuronNumber) {
@@ -235,7 +242,7 @@ We have three types of neurons:
                 if (itConn.sourceType == NEURON) {
                     nodeMap.get(itConn.sourceNum).numOutputs--;
                 }
-                itConn = connectionList.splice(itConn);
+                connectionList.splice(i, 1); // Remove element from connectionList
             } else {
                 i++;
             }
@@ -244,22 +251,18 @@ We have three types of neurons:
 
     // Find and remove neurons that don't feed anything or only feed themself.
     // This reiteratively removes all connections to the useless neurons.
-    cullUselessNeurons(nodeMap) {
+    cullUselessNeurons(connectionList, nodeMap) {
         let allDone = false;
         while (!allDone) {
             allDone = true;
-            let mapIter = nodeMap.entries();
-            for (let mapItem = mapIter.next(); !mapItem.done;) {
-                let neuron = mapItem.value[1];
+            for (var [number, neuron] of nodeMap.entries()) {
                 // We're looking for neurons with zero outputs, or neurons that feed itself
                 // and nobody else:
                 if (neuron.numOutputs == neuron.numSelfInputs) {  // could be 0
                     allDone = false;
                     // Find and remove connections from sensors or other neurons
-                    removeConnectionsToNeuron(nodeMap, mapItem.value[0]);
-                    nodeMap.delete(mapItem.value[0]);
-                } else {
-                    mapItem = mapIter.next();
+                    this.removeConnectionsToNeuron(connectionList, nodeMap, number);
+                    nodeMap.delete(number);
                 }
             }
         }

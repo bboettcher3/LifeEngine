@@ -33,6 +33,15 @@ class BodyCell{
         // default behavior: none
     }
 
+    // Number of properties senses by this cell
+    getNumSensorNeurons() {
+        return 0;
+    }
+
+    // Scales property values from cell (expected to be same length as return value from getNumSensorNeurons)
+    getSensorValues() {
+        return [];
+    }
 
     getRealCol() {
         return this.org.c + this.rotatedCol(this.org.rotation);

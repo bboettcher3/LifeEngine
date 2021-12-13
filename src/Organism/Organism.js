@@ -4,7 +4,6 @@ const Hyperparams = require("../Hyperparameters");
 const Directions = require("./Directions");
 const Anatomy = require("./Anatomy");
 const Brain = require("./Perception/Brain");
-const Sensors = require("./Perception/Sensors");
 const Actions = require("./Perception/Actions");
 const FossilRecord = require("../Stats/FossilRecord");
 
@@ -17,7 +16,7 @@ class Organism {
         this.food_collected = 0;
         this.living = true;
         this.anatomy = new Anatomy(this);
-        this.brain = new Brain(this, parent);
+        
         this.direction = Directions.down; // direction of movement
         this.rotation = Directions.up; // direction of rotation
         this.can_rotate = Hyperparams.moversCanRotate;
@@ -30,6 +29,8 @@ class Organism {
         if (parent != null) {
             this.inherit(parent);
         }
+        // Init brain after inheriting all body cells of parent
+        this.brain = new Brain(this, parent);
     }
 
     inherit(parent) {
@@ -304,19 +305,23 @@ class Organism {
         return this.living;
     }
 
-    // Returns an array of scaled sensory values between 0.0 and 1.0 (in order from Sensors.all)
+    // Count sensor neurons from organism's cell types
+    // Used for configuring the brain's neural net 
+    getNumSensors() {
+        let numSensors = 0;
+        for (var cell of this.anatomy.cells) {
+            numSensors += cell.getNumSensorNeurons();
+        }
+        return numSensors;
+    }
+
+    // Returns an array of scaled sensory values between 0.0 and 1.0 gathered from body cells
     getSensoryData() {
-        var sensorValues = new Array(Sensors.numSensors).fill(0.0);
-        var sensorTypes = Sensors.all;
-        for (let i = 0; i < Sensors.numSensors; ++i) {
-            switch (sensorTypes[i]) {
-                case Sensors.locX:
-                    sensorValues[i] = this.r / this.env.grid_map.rows;
-                    break;
-                case Sensors.locY:
-                    sensorValues[i] = this.c / this.env.grid_map.cols;
-                    break;
-            }
+        var sensorValues = [];
+        for (var cell of this.anatomy.cells) {
+            if (cell.getNumSensorNeurons() > 0) {
+                sensorValues.push(cell.getSensorValues());
+            }   
         }
         return sensorValues;
     }
@@ -354,9 +359,10 @@ class Organism {
         let moveY = actionLevels[Actions.moveY];
 
         let level = actionLevels[Actions.moveRandom];
-        let offset = Directions.getRandomScalar();
-        moveX += offset[0] * level;
-        moveY += offset[1] * level;
+
+        let dir = Directions.getRandomScalar();
+        moveX += dir[0] * level;
+        moveY += dir[1] * level;
 
         // Convert the accumulated X, Y sums to the range -1.0..1.0
         moveX = Math.tanh(moveX);
@@ -371,8 +377,10 @@ class Organism {
         let signumY = moveY < 0.0 ? -1 : 1;
 
         // Generate a normalized movement offset, where each component is -1, 0, or 1
+        let offset = [probX * signumX, probY * signumY];
         // Move there if it's a valid location
-        this.attemptMove(probX * signumX, probY * signumY);
+        
+        this.attemptMove(offset);
     }
 
     getRealCell(local_cell, c=this.c, r=this.r, rotation=this.rotation){

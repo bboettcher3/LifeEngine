@@ -7,7 +7,7 @@ class Brain {
         this.owner = owner;
         let genes = (parent != null) ? parent.brain.genome.genes : null;
         this.genome = new Genome(genes);
-        this.neuralNet = new NeuralNet(this.genome);
+        this.neuralNet = new NeuralNet(this.genome, owner.getNumSensors());
         this.observation = null;
     }
 
