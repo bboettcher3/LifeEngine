@@ -160,9 +160,9 @@ class Organism {
         return (Math.random() * 100) < prob;
     }
 
-    attemptMove(offsetX, offsetY) {
-        var new_c = this.c + offsetX;
-        var new_r = this.r + offsetY;
+    attemptMove(offset) {
+        var new_c = this.c + offset[0];
+        var new_r = this.r + offset[1];
         if (this.isClear(new_c, new_r)) {
             for (var cell of this.anatomy.cells) {
                 var real_c = this.c + cell.rotatedCol(this.rotation);
@@ -246,7 +246,6 @@ class Organism {
             if (cell==null) {
                 return false;
             }
-            // console.log(cell.owner == this)
             if (cell.owner==this || cell.state==CellStates.empty || (!Hyperparams.foodBlocksReproduction && cell.state==CellStates.food) || (ignore_armor && loccell.state==CellStates.armor && cell.state==CellStates.food)){
                 continue;
             }
@@ -320,7 +319,7 @@ class Organism {
         var sensorValues = [];
         for (var cell of this.anatomy.cells) {
             if (cell.getNumSensorNeurons() > 0) {
-                sensorValues.push(cell.getSensorValues());
+                sensorValues = sensorValues.concat(cell.getSensorValues());
             }   
         }
         return sensorValues;
@@ -379,7 +378,6 @@ class Organism {
         // Generate a normalized movement offset, where each component is -1, 0, or 1
         let offset = [probX * signumX, probY * signumY];
         // Move there if it's a valid location
-        
         this.attemptMove(offset);
     }
 

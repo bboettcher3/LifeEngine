@@ -162,8 +162,7 @@ We have three types of neurons:
                 neuronAccumulators[conn.sinkNum] += inputVal * conn.weightAsFloat();
             }
         }
-        console.log(neuronAccumulators.toString());
-
+        
         return actionLevels;
     }
 
