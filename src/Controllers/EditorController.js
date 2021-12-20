@@ -47,7 +47,6 @@ class EditorController extends CanvasController{
 
         this.new_species = true;
         this.setBrainPanelVisibility();
-        this.setMoveRangeVisibility();
         this.updateDetails();
     }
 
@@ -89,10 +88,6 @@ class EditorController extends CanvasController{
         this.edit_details_html = $('#edit-organism-details');
 
         this.decision_names = ["ignore", "move away", "move towards"];
-
-        $('#move-range-edit').change ( function() {
-            this.env.organism.move_range = parseInt($('#move-range-edit').val());
-        }.bind(this));
 		
         $('#mutation-rate-edit').change ( function() {
             this.env.organism.mutability = parseInt($('#mutation-rate-edit').val());
@@ -126,7 +121,6 @@ class EditorController extends CanvasController{
         var org = this.env.organism;
         
         $('.cell-count').text("Cell count: "+org.anatomy.cells.length);
-        $('#move-range').text("Move Range: "+org.move_range);
         $('#mutation-rate').text("Mutation Rate: "+org.mutability);
        
 		if (Hyperparams.useGlobalMutability) {
@@ -135,8 +129,6 @@ class EditorController extends CanvasController{
         else {
             $('#mutation-rate').css('display', 'block');
         }
-
-        this.setMoveRangeVisibility();
 
         if (this.setBrainPanelVisibility()) {
             this.setBrainDetails();
@@ -150,9 +142,6 @@ class EditorController extends CanvasController{
         var org = this.env.organism;
 
         $('.cell-count').text("Cell count: "+org.anatomy.cells.length);
-        if (this.setMoveRangeVisibility()){
-            $('#move-range-edit').val(org.move_range);
-        }
 
 		$('#mutation-rate-edit').val(org.mutability);
         if (Hyperparams.useGlobalMutability) {
@@ -194,18 +183,6 @@ class EditorController extends CanvasController{
         }
         $('.chase-types').text("Move Towards: " + chase_types);
         $('.retreat-types').text("Move Away From: " + retreat_types);
-    }
-
-    setMoveRangeVisibility() {
-        var org = this.env.organism;
-        if (org.anatomy.is_mover) {
-            $('#move-range-cont').css('display', 'block');
-            $('#move-range').css('display', 'block');
-            return true;
-        }
-        $('#move-range-cont').css('display', 'none');
-        $('#move-range').css('display', 'none');
-        return false;
     }
 
     setBrainEditorValues(name) {

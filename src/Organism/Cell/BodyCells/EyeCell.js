@@ -89,7 +89,7 @@ class EyeCell extends BodyCell{
             if (cell == null) {
                 break;
             }
-            if (cell.state != CellStates.empty){
+            if (cell.state != CellStates.empty && cell.cell_owner != this){
                 var distance = Math.abs(start_col-col) + Math.abs(start_row-row);
                 return new Observation(cell, distance, direction);
             }

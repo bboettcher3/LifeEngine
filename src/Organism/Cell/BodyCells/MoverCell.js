@@ -1,5 +1,6 @@
 const CellStates = require("../CellStates");
 const BodyCell = require("./BodyCell");
+const Directions = require("../../Directions");
 
 class MoverCell extends BodyCell{
     constructor(org, loc_col, loc_row){

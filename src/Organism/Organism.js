@@ -21,7 +21,6 @@ class Organism {
         this.rotation = Directions.up; // direction of rotation
         this.can_rotate = Hyperparams.moversCanRotate;
         this.move_count = 0;
-        this.move_range = 4;
         this.ignore_brain_for = 0;
         this.mutability = 5;
         this.damage = 0;
@@ -34,18 +33,12 @@ class Organism {
     }
 
     inherit(parent) {
-        this.move_range = parent.move_range;
         this.mutability = parent.mutability;
         this.species = parent.species;
         // this.birth_distance = parent.birth_distance;
         for (var c of parent.anatomy.cells){
             //deep copy parent cells
             this.anatomy.addInheritCell(c);
-        }
-        if(parent.anatomy.is_mover) {
-            for (var i in parent.brain.decisions) {
-                this.brain.decisions[i] = parent.brain.decisions[i];
-            }
         }
     }
 
@@ -90,16 +83,7 @@ class Organism {
         } 
         var mutated = false;
         if (Math.random() * 100 <= prob) {
-            if (org.anatomy.is_mover && Math.random() * 100 <= 10) {         
-                org.move_range += Math.floor(Math.random() * 4) - 2;
-                if (org.move_range <= 0){
-                    org.move_range = 1;
-                };
-                
-            }
-            else {
-                mutated = org.mutate();
-            }
+            mutated = org.mutate();
         }
 
         var direction = Directions.getRandomScalar();

@@ -6,7 +6,6 @@ class Anatomy {
         this.owner = owner;
         this.cells = [];
         this.is_producer = false;
-        this.is_mover = false;
         this.has_eyes = false;
         this.birth_distance = 4;
     }
@@ -73,13 +72,10 @@ class Anatomy {
 
     checkTypeChange() {
         this.is_producer = false;
-        this.is_mover = false;
         this.has_eyes = false;
         for (var cell of this.cells) {
             if (cell.state == CellStates.producer)
                 this.is_producer = true;
-            if (cell.state == CellStates.mover)
-                this.is_mover = true;
             if (cell.state == CellStates.eye)
                 this.has_eyes = true;
         }
