@@ -26,6 +26,9 @@ class OrganismEditor extends Environment{
 
     changeCell(c, r, state, owner) {
         super.changeCell(c, r, state, owner);
+        var center = this.grid_map.getCenter();
+        var mirrorCell = this.organism.anatomy.getMirroredCell(owner);
+        super.changeCell(mirrorCell.loc_col + center[0], mirrorCell.loc_row + center[1], state, mirrorCell);
         this.renderFull();
     }
 
@@ -38,7 +41,7 @@ class OrganismEditor extends Environment{
         var center = this.grid_map.getCenter();
         var loc_c = c - center[0];
         var loc_r = r - center[1];
-        var prev_cell = this.organism.anatomy.getLocalCell(loc_c, loc_r)
+        var prev_cell = this.organism.anatomy.getLocalCell(loc_c, loc_r);
         if (prev_cell != null) {
             var new_cell = this.organism.anatomy.replaceCell(state, prev_cell.loc_col, prev_cell.loc_row, false);
             this.changeCell(c, r, state, new_cell);

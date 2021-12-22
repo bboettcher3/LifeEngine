@@ -4,7 +4,8 @@ const BodyCellFactory = require("./Cell/BodyCells/BodyCellFactory");
 class Anatomy {
     constructor(owner) {
         this.owner = owner;
-        this.cells = [];
+        this.cells = []; // main cells (left side)
+        this.mirrorCells = []; // bilateral symmetry cells (right side)
         this.is_producer = false;
         this.is_mover = false;
         this.has_eyes = false;
@@ -17,12 +18,43 @@ class Anatomy {
                 return false;
             }
         }
+        for (var cell of this.mirrorCells) {
+            if (cell.loc_col == c && cell.loc_row == r){
+                return false;
+            }
+        }
         return true;
+    }
+
+    getMirroredCell(cell) {
+        var i = this.cells.indexOf(cell);
+        if (i == -1) {
+            i = this.mirrorCells.indexOf(cell);
+            return this.cells[i];
+        }
+        return this.mirrorCells[i];
+    }
+
+    isMirrorSide(c, r) {
+        // column/row: 0th bit == 0, >/<: xor with itself == 0
+        // some logic manipulation of the Directions values
+        var checkRow = this.owner.rotation & 1;
+        var checkGreater = this.owner.rotation ^ this.owner.rotation;
+        return checkRow ? (checkGreater ? r > this.owner.r : r < this.owner.r) :
+                           checkGreater ? c > this.owner.c : c < this.owner.c;
     }
 
     addDefaultCell(state, c, r) {
         var new_cell = BodyCellFactory.createDefault(this.owner, state, c, r);
-        this.cells.push(new_cell);
+        var mirrorLoc = new_cell.mirroredLoc();
+        var new_mirror_cell = BodyCellFactory.createDefault(this.owner, state, mirrorLoc[0], mirrorLoc[1]);
+        if (this.isMirrorSide(c, r)) {
+            this.cells.push(new_mirror_cell);
+            this.mirrorCells.push(new_cell);
+        } else {
+            this.cells.push(new_cell);
+            this.mirrorCells.push(new_mirror_cell);
+        }
         return new_cell;
     }
 
@@ -31,13 +63,31 @@ class Anatomy {
             this.owner.brain.randomizeDecisions();
         }
         var new_cell = BodyCellFactory.createRandom(this.owner, state, c, r);
-        this.cells.push(new_cell);
+        var mirrorLoc = new_cell.mirroredLoc();
+        var new_mirror_cell = BodyCellFactory.createRandom(this.owner, state, mirrorLoc[0], mirrorLoc[1]);
+        if (this.isMirrorSide(c, r)) {
+            this.cells.push(new_mirror_cell);
+            this.mirrorCells.push(new_cell);
+        } else {
+            this.cells.push(new_cell);
+            this.mirrorCells.push(new_mirror_cell);
+        }
         return new_cell;
     }
 
     addInheritCell(parent_cell) {
         var new_cell = BodyCellFactory.createInherited(this.owner, parent_cell);
-        this.cells.push(new_cell);
+        var mirrorLoc = new_cell.mirroredLoc();
+        var new_mirror_cell = BodyCellFactory.createInherited(this.owner, parent_cell);
+        new_mirror_cell.loc_col = mirrorLoc[0]; // overwrite position from parent
+        new_mirror_cell.loc_row = mirrorLoc[1];
+        if (this.isMirrorSide(new_cell.loc_col, new_cell.loc_row)) {
+            this.cells.push(new_mirror_cell);
+            this.mirrorCells.push(new_cell);
+        } else {
+            this.cells.push(new_cell);
+            this.mirrorCells.push(new_mirror_cell);
+        }
         return new_cell;
     }
 
@@ -58,6 +108,15 @@ class Anatomy {
             var cell = this.cells[i];
             if (cell.loc_col == c && cell.loc_row == r){
                 this.cells.splice(i, 1);
+                this.mirrorCells.splice(i, 1);
+                break;
+            }
+        }
+        for (var i=0; i<this.mirrorCells.length; i++) {
+            var cell = this.cells[i];
+            if (cell.loc_col == c && cell.loc_row == r){
+                this.cells.splice(i, 1);
+                this.mirrorCells.splice(i, 1);
                 break;
             }
         }
@@ -67,6 +126,11 @@ class Anatomy {
 
     getLocalCell(c, r) {
         for (var cell of this.cells) {
+            if (cell.loc_col == c && cell.loc_row == r){
+                return cell;
+            }
+        }
+        for (var cell of this.mirrorCells) {
             if (cell.loc_col == c && cell.loc_row == r){
                 return cell;
             }

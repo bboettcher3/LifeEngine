@@ -73,6 +73,24 @@ class BodyCell{
                 return this.loc_col;
         }
     }
+
+    // mirrored around [0, 0] vertically with 0 x being part of the left side
+    // l l     r
+    // l (0,0) r
+    // l l     r
+    mirroredLoc(){
+        switch(this.org.rotation){
+            case Directions.up:
+                return [this.loc_col * -1 + 1, this.loc_row];
+            case Directions.down:
+                return [this.loc_col * -1 - 1, this.loc_row];
+            case Directions.left:
+                return [this.loc_col, this.loc_row * -1 - 1];
+            case Directions.right:
+                return [this.loc_col, this.loc_row * -1 + 1];
+        }
+        return [0, 0];
+    }
 }
 
 module.exports = BodyCell;

@@ -165,6 +165,11 @@ class Organism {
                 var real_r = this.r + cell.rotatedRow(this.rotation);
                 this.env.changeCell(real_c, real_r, CellStates.empty, null);
             }
+            for (var cell of this.anatomy.mirrorCells) {
+                var real_c = this.c + cell.rotatedCol(this.rotation);
+                var real_r = this.r + cell.rotatedRow(this.rotation);
+                this.env.changeCell(real_c, real_r, CellStates.empty, null);
+            }
             this.c = new_c;
             this.r = new_r;
             this.updateGrid();
@@ -182,6 +187,11 @@ class Organism {
         var new_rotation = Directions.getRandomDirection();
         if(this.isClear(this.c, this.r, new_rotation)){
             for (var cell of this.anatomy.cells) {
+                var real_c = this.c + cell.rotatedCol(this.rotation);
+                var real_r = this.r + cell.rotatedRow(this.rotation);
+                this.env.changeCell(real_c, real_r, CellStates.empty, null);
+            }
+            for (var cell of this.anatomy.mirrorCells) {
                 var real_c = this.c + cell.rotatedCol(this.rotation);
                 var real_r = this.r + cell.rotatedRow(this.rotation);
                 this.env.changeCell(real_c, real_r, CellStates.empty, null);
@@ -247,6 +257,16 @@ class Organism {
             }
             return false;
         }
+        for(var loccell of this.anatomy.mirrorCells) {
+            var cell = this.getRealCell(loccell, col, row, rotation);
+            if (cell==null) {
+                return false;
+            }
+            if (cell.owner==this || cell.state==CellStates.empty || (!Hyperparams.foodBlocksReproduction && cell.state==CellStates.food)){
+                continue;
+            }
+            return false;
+        }
         return true;
     }
 
@@ -263,12 +283,22 @@ class Organism {
             var real_r = this.r + cell.rotatedRow(this.rotation);
             this.env.changeCell(real_c, real_r, CellStates.food, null);
         }
+        for (var cell of this.anatomy.mirrorCells) {
+            var real_c = this.c + cell.rotatedCol(this.rotation);
+            var real_r = this.r + cell.rotatedRow(this.rotation);
+            this.env.changeCell(real_c, real_r, CellStates.food, null);
+        }
         this.species.decreasePop();
         this.living = false;
     }
 
     updateGrid() {
         for (var cell of this.anatomy.cells) {
+            var real_c = this.c + cell.rotatedCol(this.rotation);
+            var real_r = this.r + cell.rotatedRow(this.rotation);
+            this.env.changeCell(real_c, real_r, cell.state, cell);
+        }
+        for (var cell of this.anatomy.mirrorCells) {
             var real_c = this.c + cell.rotatedCol(this.rotation);
             var real_r = this.r + cell.rotatedRow(this.rotation);
             this.env.changeCell(real_c, real_r, cell.state, cell);

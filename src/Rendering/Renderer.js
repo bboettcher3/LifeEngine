@@ -79,6 +79,10 @@ class Renderer {
             var cell = org.getRealCell(org_cell);
             this.cells_to_highlight.add(cell);
         }
+        for(var org_cell of org.anatomy.mirrorCells) {
+            var cell = org.getRealCell(org_cell);
+            this.cells_to_highlight.add(cell);
+        }
     }
 
     highlightCell(cell) {
